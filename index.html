@@ -683,7 +683,6 @@
     const STORAGE_KEYS = {
       settings: 'bangchak-dashboard-settings-v2'
     };
-    const STALE_AFTER_MS = 2 * 24 * 60 * 60 * 1000;
 
     let latestData = { g95: null, e20: null, root: null, spread: null };
     let historyRows = [];
@@ -1118,11 +1117,9 @@
         renderHistory();
 
         const fetchedAt = payload[0]?.FetchedAt;
-        const fetchedMs = fetchedAt ? Date.parse(fetchedAt) : NaN;
-        const stale = Number.isFinite(fetchedMs) && Date.now() - fetchedMs > STALE_AFTER_MS;
         statusEl.textContent = fetchedAt
-          ? `ข้อมูลดึงเมื่อ ${formatDateTime(fetchedAt)}${stale ? ' • ข้อมูลเก่าเกิน 2 วัน' : ''}`
-          : 'ไม่พบเวลาที่ดึงข้อมูล';
+          ? `ราคาวันที่ ${payload[0].OilPriceDate || '-'} เวลา ${payload[0].OilPriceTime || '-'} น. • ตรวจพบการเปลี่ยนแปลงล่าสุดเมื่อ ${formatDateTime(fetchedAt)}`
+          : 'ยังไม่มีข้อมูลราคา';
       } catch (error) {
         console.error(error);
         errorBox.innerHTML = `โหลดข้อมูลไม่สำเร็จ<br>${escapeHtml(error.message || String(error))}<br><br>ลองกด Refresh อีกครั้ง หรือรอให้ระบบอัปเดตรอบถัดไป`;

@@ -8,7 +8,7 @@
 
 - GitHub Actions ([.github/workflows/update-prices.yml](.github/workflows/update-prices.yml)) รันวันละครั้ง 05:00 น. เวลาไทย
 - [scripts/fetch_prices.py](scripts/fetch_prices.py) ดึงราคาจาก Bangchak แล้วบันทึกไว้ในโฟลเดอร์ `data/`
-  - `data/latest.json` ราคาล่าสุด (เขียนทุกครั้งที่รัน)
+  - `data/latest.json` ราคาล่าสุด เขียนเฉพาะเมื่อราคาที่แสดงบนหน้าเว็บเปลี่ยน ดังนั้นวันที่ราคาไม่ขยับจะไม่มี commit
   - `data/history.json` ประวัติ บันทึกเฉพาะวันที่ราคา G95 หรือ E20 เปลี่ยน
 - เมื่อราคาเปลี่ยน workflow จะเปิด GitHub Issue ให้อัตโนมัติ ดูการแจ้งเตือนได้จาก Issues ของ repo นี้
 - หน้าเว็บ [index.html](index.html) อ่านไฟล์ใน `data/` แล้วแสดงผล GitHub Pages เสิร์ฟหน้าเว็บนี้

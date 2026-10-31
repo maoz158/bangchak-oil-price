@@ -93,8 +93,24 @@ def write_json(path, data):
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
-def previous_summary():
-    previous = read_json(LATEST_PATH, None)
+def snapshot(payload):
+    """Everything the page displays from the price list, for change detection."""
+    root = payload[0] if isinstance(payload, list) else payload
+    oils = root['OilList']
+    if isinstance(oils, str):
+        oils = json.loads(oils)
+    return {
+        'priceDate': root.get('OilPriceDate'),
+        'priceTime': root.get('OilPriceTime'),
+        'oils': [[item.get('OilName'), item.get('PriceToday'), item.get('PriceYesterday'), item.get('PriceTomorrow')] for item in oils],
+    }
+
+
+def previous_payload():
+    return read_json(LATEST_PATH, None)
+
+
+def previous_summary(previous):
     if not previous:
         return None
     try:
@@ -125,20 +141,24 @@ def build_issue_body(previous, current):
 def main():
     payload = fetch_raw()
     current = summarize(payload)
-    previous = previous_summary()
+    previous_raw = previous_payload()
+    previous = previous_summary(previous_raw)
 
-    changed = previous is None or previous['g95'] != current['g95'] or previous['e20'] != current['e20']
-    price_changed = previous is not None and changed
+    # Only write when something the page shows has changed, so unchanged days make no commit.
+    displayed_changed = previous_raw is None or snapshot(payload) != snapshot(previous_raw)
+    g95_e20_changed = previous is None or previous['g95'] != current['g95'] or previous['e20'] != current['e20']
+    price_changed = previous is not None and g95_e20_changed
 
-    root = payload[0] if isinstance(payload, list) else payload
-    root['FetchedAt'] = datetime.now(BANGKOK).isoformat(timespec='seconds')
     DATA_DIR.mkdir(exist_ok=True)
-    write_json(LATEST_PATH, payload if isinstance(payload, list) else [payload])
+    if displayed_changed:
+        root = payload[0] if isinstance(payload, list) else payload
+        root['FetchedAt'] = datetime.now(BANGKOK).isoformat(timespec='seconds')
+        write_json(LATEST_PATH, payload if isinstance(payload, list) else [payload])
 
-    if changed:
+    if g95_e20_changed:
         history = read_json(HISTORY_PATH, [])
         history.append({
-            'savedAt': root['FetchedAt'],
+            'savedAt': datetime.now(BANGKOK).isoformat(timespec='seconds'),
             'priceDate': current['priceDate'],
             'g95': current['g95'],
             'e20': current['e20'],
@@ -146,7 +166,7 @@ def main():
         })
         write_json(HISTORY_PATH, history[-HISTORY_LIMIT:])
 
-    print(f"G95={current['g95']} E20={current['e20']} price_changed={price_changed}")
+    print(f"G95={current['g95']} E20={current['e20']} displayed_changed={displayed_changed} price_changed={price_changed}")
 
     issue_body_file = os.environ.get('ISSUE_BODY_FILE')
     if price_changed and issue_body_file:
