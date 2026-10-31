@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: bangchak-oil-price
-    runtime: python
-    plan: free
-    buildCommand: echo "no build step"
-    startCommand: python3 server.py
-    healthCheckPath: /

@@ -1,0 +1,58 @@
+name: Update oil prices
+
+on:
+  schedule:
+    # รันวันละครั้ง 05:00 น. เวลาประเทศไทย (ตรงกับ 22:00 UTC ของวันก่อนหน้า)
+    - cron: '0 22 * * *'
+  workflow_dispatch: # กดรันเองจากหน้า Actions ได้
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch prices
+        id: fetch
+        env:
+          ISSUE_BODY_FILE: ${{ runner.temp }}/issue-body.md
+        run: python3 scripts/fetch_prices.py
+
+      - name: Commit data if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes to commit"
+            exit 0
+          fi
+          git commit -m "Update oil prices $(TZ=Asia/Bangkok date +%F)"
+          git pull --rebase
+          git push
+
+      - name: Open issue when price changed
+        if: steps.fetch.outputs.price_changed == 'true'
+        run: |
+          gh issue create \
+            --title "ราคาน้ำมันเปลี่ยน $(TZ=Asia/Bangkok date +%F)" \
+            --body-file "${{ runner.temp }}/issue-body.md"
+
+      - name: Open issue when the fetch fails
+        if: failure()
+        run: |
+          gh issue create \
+            --title "ดึงราคาน้ำมันไม่สำเร็จ $(TZ=Asia/Bangkok date +%F)" \
+            --body "ดู log ได้ที่ ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"

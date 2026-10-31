@@ -355,13 +355,12 @@
       <div>
         <h1 class="title">Bangchak Fuel Decision Dashboard</h1>
         <div class="subtitle">
-          โฟกัสแก๊สโซฮอล์ 95 S EVO เทียบกับ E20 ด้านบน พร้อมสรุปความคุ้ม, คำนวณค่าเติม/ค่าวิ่ง, เก็บประวัติราคาไว้ในเครื่อง, มีกราฟส่วนต่างย้อนหลัง และมี decision tool สำหรับรถ map G95 ที่กำลังมอง E20
+          โฟกัสแก๊สโซฮอล์ 95 S EVO เทียบกับ E20 ด้านบน พร้อมสรุปความคุ้ม, คำนวณค่าเติม/ค่าวิ่ง, เก็บประวัติราคาไว้ที่ไฟล์ของโปรเจกต์ มีกราฟส่วนต่างย้อนหลัง และมี decision tool สำหรับรถ map G95 ที่กำลังมอง E20
         </div>
       </div>
       <div class="actions">
         <button id="refreshBtn" class="btn btn-primary">Refresh</button>
         <button id="copySummaryBtn" class="btn btn-secondary">Copy Summary</button>
-        <button id="clearHistoryBtn" class="btn btn-secondary">Clear History</button>
       </div>
     </div>
 
@@ -585,7 +584,7 @@
         <div class="section-head">
           <div>
             <h2 class="section-title">กราฟส่วนต่าง G95 - E20 ย้อนหลัง</h2>
-            <p class="section-subtitle">เก็บไว้ใน localStorage ของเบราว์เซอร์เครื่องนี้ สูงสุด 60 จุดข้อมูล</p>
+            <p class="section-subtitle">บันทึกทุกครั้งที่ราคา G95 หรือ E20 เปลี่ยน อัปเดตวันละครั้งโดยอัตโนมัติ</p>
           </div>
           <div class="chip">Step 2: History + Graph</div>
         </div>
@@ -627,7 +626,6 @@
   <script>
     const refreshBtn = document.getElementById('refreshBtn');
     const copySummaryBtn = document.getElementById('copySummaryBtn');
-    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
     const statusEl = document.getElementById('status');
     const errorBox = document.getElementById('errorBox');
     const oilDateNowEl = document.getElementById('oilDateNow');
@@ -683,11 +681,12 @@
     const chartCtx = chartCanvas.getContext('2d');
 
     const STORAGE_KEYS = {
-      settings: 'bangchak-dashboard-settings-v2',
-      history: 'bangchak-dashboard-history-v1'
+      settings: 'bangchak-dashboard-settings-v2'
     };
+    const STALE_AFTER_MS = 2 * 24 * 60 * 60 * 1000;
 
     let latestData = { g95: null, e20: null, root: null, spread: null };
+    let historyRows = [];
 
     function escapeHtml(text) {
       return String(text)
@@ -774,27 +773,7 @@
     }
 
     function getHistory() {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.history) || '[]');
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
-      }
-    }
-
-    function saveHistory(history) {
-      localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(history.slice(-60)));
-    }
-
-    function upsertHistory(entry) {
-      const history = getHistory();
-      const last = history[history.length - 1];
-      const sameAsLast = last && last.g95 === entry.g95 && last.e20 === entry.e20 && last.oilDateNow === entry.oilDateNow;
-      if (!sameAsLast) {
-        history.push(entry);
-        saveHistory(history);
-      }
-      renderHistory();
+      return historyRows;
     }
 
     function renderFocusCards(g95, e20) {
@@ -979,7 +958,7 @@
           <td class="num">${formatPrice(row.g95)}</td>
           <td class="num">${formatPrice(row.e20)}</td>
           <td class="num">${formatPrice(row.spread)}</td>
-          <td>${escapeHtml(row.oilDateNow || '-')}</td>
+          <td>${escapeHtml(row.priceDate || '-')}</td>
         </tr>
       `).join('');
 
@@ -1103,16 +1082,6 @@
       renderSpread(latestData.spread);
       recalcMetrics();
 
-      if (toNumber(g95?.PriceToday) !== null && toNumber(e20?.PriceToday) !== null) {
-        upsertHistory({
-          savedAt: new Date().toISOString(),
-          g95: Number(g95.PriceToday),
-          e20: Number(e20.PriceToday),
-          spread: Number((Number(g95.PriceToday) - Number(e20.PriceToday)).toFixed(2)),
-          oilDateNow: root.OilDateNow || '-',
-        });
-      }
-
       if (!oilList.length) {
         oilTableBody.innerHTML = '<tr><td colspan="4">ไม่พบรายการน้ำมัน</td></tr>';
         return;
@@ -1128,33 +1097,10 @@
       `).join('');
     }
 
-    async function fetchOilPayload() {
-      const cacheBust = `t=${Date.now()}`;
-      const candidates = [
-        `/api/oil?${cacheBust}`,
-        `${window.location.origin}/api/oil?${cacheBust}`,
-        `http://127.0.0.1:8000/api/oil?${cacheBust}`,
-        `http://localhost:8000/api/oil?${cacheBust}`,
-      ];
-
-      let lastError = null;
-      for (const url of candidates) {
-        try {
-          const response = await fetch(url, {
-            cache: 'no-store',
-            headers: { 'Accept': 'application/json' }
-          });
-          if (!response.ok) {
-            lastError = new Error(`โหลดข้อมูลไม่สำเร็จ (HTTP ${response.status}) จาก ${url}`);
-            continue;
-          }
-          const payload = await response.json();
-          return { payload, url };
-        } catch (error) {
-          lastError = error;
-        }
-      }
-      throw lastError || new Error('Load failed');
+    async function loadJson(path) {
+      const response = await fetch(`${path}?t=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`โหลด ${path} ไม่สำเร็จ (HTTP ${response.status})`);
+      return response.json();
     }
 
     async function loadData() {
@@ -1163,12 +1109,23 @@
       errorBox.style.display = 'none';
       errorBox.textContent = '';
       try {
-        const { payload, url } = await fetchOilPayload();
+        const [payload, history] = await Promise.all([
+          loadJson('./data/latest.json'),
+          loadJson('./data/history.json'),
+        ]);
+        historyRows = Array.isArray(history) ? history : [];
         renderData(payload);
-        statusEl.textContent = `อัปเดตหน้าเว็บล่าสุด: ${new Date().toLocaleString('th-TH')} • source: ${url}`;
+        renderHistory();
+
+        const fetchedAt = payload[0]?.FetchedAt;
+        const fetchedMs = fetchedAt ? Date.parse(fetchedAt) : NaN;
+        const stale = Number.isFinite(fetchedMs) && Date.now() - fetchedMs > STALE_AFTER_MS;
+        statusEl.textContent = fetchedAt
+          ? `ข้อมูลดึงเมื่อ ${formatDateTime(fetchedAt)}${stale ? ' • ข้อมูลเก่าเกิน 2 วัน' : ''}`
+          : 'ไม่พบเวลาที่ดึงข้อมูล';
       } catch (error) {
         console.error(error);
-        errorBox.innerHTML = `โหลดข้อมูลไม่สำเร็จ<br>${escapeHtml(error.message || String(error))}<br><br>ลองเช็กว่า server_ssl_fix.py ยังค้างอยู่และเปิดหน้านี้ผ่าน http://127.0.0.1:8000/... ไม่ใช่ file://`;
+        errorBox.innerHTML = `โหลดข้อมูลไม่สำเร็จ<br>${escapeHtml(error.message || String(error))}<br><br>ลองกด Refresh อีกครั้ง หรือรอให้ระบบอัปเดตรอบถัดไป`;
         errorBox.style.display = 'block';
         statusEl.textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
       } finally {
@@ -1189,13 +1146,9 @@
         copySummaryBtn.textContent = 'Copied';
         setTimeout(() => copySummaryBtn.textContent = 'Copy Summary', 1400);
       } catch {
-        alert(message);
+        copySummaryBtn.textContent = 'Copy failed';
+        setTimeout(() => copySummaryBtn.textContent = 'Copy Summary', 1400);
       }
-    }
-
-    function clearHistory() {
-      localStorage.removeItem(STORAGE_KEYS.history);
-      renderHistory();
     }
 
     [tankLitersInput, distanceKmInput, g95KmPerLInput, e20KmPerLInput, budgetBahtInput, targetDistanceKmInput, reservePercentInput].forEach(input => {
@@ -1218,7 +1171,6 @@
 
     refreshBtn.addEventListener('click', loadData);
     copySummaryBtn.addEventListener('click', copySummary);
-    clearHistoryBtn.addEventListener('click', clearHistory);
 
     applySettingsToInputs();
     renderHistory();
