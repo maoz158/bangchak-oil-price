@@ -517,10 +517,19 @@
         <polyline fill="none" stroke="#0071e3" stroke-width="2.5" stroke-linejoin="round" points="${pts(main)}" />`;
     }
 
+    // "31 ต.ค. 2569 22:10" in Bangkok time, for times the page shows to people.
+    function thaiDateTime(value) {
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return '-';
+      return new Intl.DateTimeFormat('th-TH', {
+        timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+      }).format(d);
+    }
+
     function renderSource() {
       const m = state.priceMeta;
       $('sourceInfo').textContent = m
-        ? `ราคาวันที่ ${m.priceDate || '-'} เวลา ${m.priceTime || '-'} น. · ตรวจพบการเปลี่ยนแปลงล่าสุดเมื่อ ${m.fetchedAt ? bangkokDate(m.fetchedAt) : '-'}`
+        ? `ราคาวันที่ ${m.priceDate || '-'} เวลา ${m.priceTime || '-'} น. · ตรวจพบการเปลี่ยนแปลงล่าสุดเมื่อ ${m.fetchedAt ? thaiDateTime(m.fetchedAt) : '-'}`
         : 'ยังไม่มีข้อมูลราคา';
     }
 

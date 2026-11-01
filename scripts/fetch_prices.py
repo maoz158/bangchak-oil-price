@@ -125,13 +125,18 @@ def build_issue_body(previous, current):
         if previous is None:
             return f'- {label}: **{new:.2f} บาท**'
         old = previous[key]
+        if round(new - old, 2) == 0:
+            return None
         return f'- {label}: **{new:.2f} บาท** (จาก {old:.2f} บาท, เปลี่ยน {new - old:+.2f})'
 
+    changed_lines = [
+        line('แก๊สโซฮอล์ 95 S EVO', 'g95'),
+        line('แก๊สโซฮอล์ E20 S EVO', 'e20'),
+    ]
     return '\n'.join([
         f"ราคาวันที่ {current['priceDate']} เวลา {current['priceTime']} น.",
         '',
-        line('แก๊สโซฮอล์ 95 S EVO', 'g95'),
-        line('แก๊สโซฮอล์ E20 S EVO', 'e20'),
+        *[item for item in changed_lines if item],
         f"- ส่วนต่าง G95 - E20: **{current['spread']:.2f} บาท**",
         '',
         'ดูหน้าเว็บ: https://maoz158.github.io/bangchak-oil-price/',
