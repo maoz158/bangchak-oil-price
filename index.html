@@ -293,6 +293,24 @@
       </div>
     </section>
 
+    <h2>คำนวณคร่าวๆ</h2>
+    <section class="panel">
+      <div class="row">
+        <div>
+          <label for="calcKm">ระยะทาง</label>
+          <span class="hint" id="calcKmOut">ใช้ประมาณ - บาท</span>
+        </div>
+        <input id="calcKm" type="number" inputmode="decimal" min="0" step="1" placeholder="กม." />
+      </div>
+      <div class="row">
+        <div>
+          <label for="calcBaht">งบน้ำมัน</label>
+          <span class="hint" id="calcBahtOut">วิ่งได้ประมาณ - กม.</span>
+        </div>
+        <input id="calcBaht" type="number" inputmode="decimal" min="0" step="1" placeholder="บาท" />
+      </div>
+    </section>
+
     <h2>ประวัติล่าสุด</h2>
     <section class="panel" style="padding-top:0;padding-bottom:0;">
       <ul class="list" id="history"><li><span>กำลังโหลด...</span></li></ul>
@@ -416,6 +434,13 @@
       return rows[rows.length - 1].odometer - rows[rows.length - 2].odometer;
     }
 
+    // Baht per km for the current vehicle: pump price estimate divided by km/L.
+    function costPerKm(key = state.current) {
+      const est = estimatedPump(key);
+      if (est === null) return null;
+      return est / efficiency(key).kmpl;
+    }
+
     function renderHero() {
       const v = vehicle();
       const est = estimatedPump(state.current);
@@ -437,12 +462,20 @@
     function renderStats() {
       const key = state.current;
       const eff = efficiency(key);
-      const est = estimatedPump(key);
       $('kmpl').textContent = fmt(eff.kmpl);
       $('kmplNote').textContent = eff.measured ? `จาก ${eff.count} ครั้งที่เติม` : 'ค่าเริ่มต้น';
-      $('costKm').textContent = est === null ? '-' : fmt(est / eff.kmpl, 2);
+      $('costKm').textContent = fmt(costPerKm(key), 2);
       const last = lastDistance(key);
       $('lastKm').textContent = last === null ? '-' : fmt(last, 0);
+    }
+
+    // Two-way estimate: distance to baht, or baht to distance, using the same cost per km.
+    function renderCalc() {
+      const cost = costPerKm();
+      const km = Number($('calcKm').value);
+      const baht = Number($('calcBaht').value);
+      $('calcKmOut').textContent = cost === null || !(km > 0) ? 'ใช้ประมาณ - บาท' : `ใช้ประมาณ ${fmt(km * cost, 0)} บาท`;
+      $('calcBahtOut').textContent = cost === null || !(baht > 0) ? 'วิ่งได้ประมาณ - กม.' : `วิ่งได้ประมาณ ${fmt(baht / cost, 0)} กม.`;
     }
 
     function renderHistory() {
@@ -506,6 +539,7 @@
     function renderAll() {
       renderHero();
       renderStats();
+      renderCalc();
       renderHistory();
       renderChart();
       renderSource();
@@ -651,6 +685,8 @@
     });
     $('paid').addEventListener('input', () => { state.paidEdited = true; renderTotal(); });
     $('liters').addEventListener('input', renderTotal);
+    $('calcKm').addEventListener('input', renderCalc);
+    $('calcBaht').addEventListener('input', renderCalc);
     $('save').addEventListener('click', saveFill);
     $('refresh').addEventListener('click', refresh);
 
