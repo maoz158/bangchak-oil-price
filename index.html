@@ -3,1177 +3,660 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bangchak Fuel Decision Dashboard</title>
+  <title>ราคาน้ำมันและการเติม</title>
   <style>
     :root {
-      --bg1: #020617;
-      --bg2: #0f172a;
-      --card: rgba(15, 23, 42, 0.92);
-      --line: rgba(148, 163, 184, 0.18);
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-      --green: #22c55e;
-      --green-2: #16a34a;
-      --amber: #f59e0b;
-      --red: #ef4444;
-      --blue: #38bdf8;
-      --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-      --radius: 20px;
+      --bg: #fbfbfd;
+      --card: #ffffff;
+      --text: #1d1d1f;
+      --muted: #86868b;
+      --line: #e8e8ed;
+      --accent: #0071e3;
+      --ok: #248a3d;
+      --danger: #d70015;
+      --radius: 18px;
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
       color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(34, 197, 94, 0.08), transparent 26%),
-        radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 28%),
-        linear-gradient(180deg, var(--bg1), var(--bg2));
-      min-height: 100vh;
-      padding: 22px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "Noto Sans Thai", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .wrap { max-width: 1420px; margin: 0 auto; }
+    main { max-width: 560px; margin: 0 auto; padding: 24px 20px 56px; }
 
-    .hero {
+    .top {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 18px;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 28px;
     }
 
-    .title { margin: 0; font-size: clamp(1.5rem, 3vw, 2.1rem); letter-spacing: -0.02em; }
-    .subtitle { margin-top: 8px; color: var(--muted); line-height: 1.6; max-width: 960px; }
+    .switch {
+      display: flex;
+      background: #e8e8ed;
+      border-radius: 10px;
+      padding: 3px;
+      flex: 1;
+    }
 
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .btn {
+    .switch button {
+      flex: 1;
+      appearance: none;
       border: 0;
-      border-radius: 14px;
-      padding: 14px 20px;
-      font-weight: 800;
-      cursor: pointer;
-      font-size: 0.98rem;
-      min-width: 140px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(180deg, #4ade80, var(--green));
-      color: #052e16;
-      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.18);
-    }
-
-    .btn-secondary {
-      background: rgba(30, 41, 59, 0.9);
-      color: var(--text);
-      border: 1px solid var(--line);
-    }
-
-    .btn:disabled { opacity: 0.72; cursor: wait; }
-
-    .grid-top {
-      display: grid;
-      grid-template-columns: 1fr 1fr minmax(280px, 0.95fr);
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      backdrop-filter: blur(10px);
-    }
-
-    .card-inner { padding: 18px; }
-
-    .focus-card { position: relative; }
-    .focus-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top right, rgba(74, 222, 128, 0.08), transparent 36%);
-      pointer-events: none;
-    }
-
-    .focus-label {
-      color: var(--muted);
-      font-size: 0.82rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-      position: relative;
-    }
-
-    .focus-name { font-size: 1.45rem; font-weight: 800; margin: 0 0 10px; position: relative; }
-    .focus-price { font-size: clamp(2rem, 4vw, 2.8rem); line-height: 1; font-weight: 900; margin: 0 0 14px; font-variant-numeric: tabular-nums; position: relative; }
-    .focus-meta { display: flex; flex-wrap: wrap; gap: 8px; position: relative; }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border-radius: 999px;
-      padding: 7px 10px;
-      font-size: 0.84rem;
-      border: 1px solid var(--line);
-      background: rgba(2, 6, 23, 0.38);
-      color: var(--text);
-    }
-
-    .summary-card { display: flex; flex-direction: column; justify-content: center; min-height: 100%; }
-    .summary-title { margin: 0 0 10px; font-size: 1rem; }
-    .spread-value { font-size: clamp(2.1rem, 4vw, 3rem); line-height: 1; font-weight: 900; font-variant-numeric: tabular-nums; margin: 0 0 10px; }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      width: fit-content;
-      border-radius: 999px;
+      background: transparent;
       padding: 8px 12px;
-      font-size: 0.88rem;
-      font-weight: 800;
-      margin-bottom: 12px;
-      border: 1px solid transparent;
+      border-radius: 8px;
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
     }
 
-    .state-great { color: #dcfce7; background: rgba(21, 128, 61, 0.22); border-color: rgba(34, 197, 94, 0.3); }
-    .state-good { color: #bbf7d0; background: rgba(21, 128, 61, 0.14); border-color: rgba(34, 197, 94, 0.25); }
-    .state-mid { color: #fde68a; background: rgba(180, 83, 9, 0.18); border-color: rgba(245, 158, 11, 0.28); }
-    .state-low { color: #fecaca; background: rgba(127, 29, 29, 0.22); border-color: rgba(239, 68, 68, 0.28); }
-    .summary-note, .note { color: var(--muted); line-height: 1.65; font-size: 0.94rem; }
-
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .metric {
-      background: rgba(2, 6, 23, 0.36);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px;
-      min-height: 108px;
-    }
-
-    .metric-label { color: var(--muted); font-size: 0.84rem; margin-bottom: 8px; }
-    .metric-value { font-size: 1.24rem; font-weight: 800; line-height: 1.35; font-variant-numeric: tabular-nums; }
-    .metric-sub { margin-top: 8px; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
-
-    .layout-main {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 420px);
-      gap: 18px;
-      align-items: start;
-      margin-bottom: 18px;
-    }
-
-    .section-title { margin: 0 0 6px; font-size: 1.08rem; }
-    .section-subtitle { color: var(--muted); margin: 0; line-height: 1.5; font-size: 0.95rem; }
-    .status { color: var(--muted); margin: 16px 0 0; }
-
-    .error {
-      display: none;
-      margin-top: 14px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      background: rgba(127, 29, 29, 0.26);
-      color: #fecaca;
-      line-height: 1.5;
-    }
-
-    .meta-grid, .config-grid, .decision-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 18px;
-    }
-
-    .config-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .decision-grid { grid-template-columns: 1.2fr 1fr 1fr; }
-
-    .box {
-      background: rgba(2, 6, 23, 0.36);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px;
-      min-height: 96px;
-    }
-
-    .box-label { color: var(--muted); font-size: 0.84rem; margin-bottom: 8px; }
-    .box-value { font-size: 1rem; font-weight: 700; line-height: 1.45; word-break: break-word; }
-
-    .field label { display: block; color: var(--muted); font-size: 0.84rem; margin-bottom: 8px; }
-    .field input {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(15, 23, 42, 0.85);
+    .switch button[aria-pressed="true"] {
+      background: #fff;
       color: var(--text);
-      padding: 12px 12px;
-      font-size: 0.98rem;
-      outline: none;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     }
 
-    .field input:focus { border-color: rgba(56, 189, 248, 0.55); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12); }
-
-    .section { margin-top: 18px; }
-    .section-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .chip {
-      color: #bbf7d0;
-      border: 1px solid rgba(34, 197, 94, 0.28);
-      background: rgba(21, 128, 61, 0.18);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 0.82rem;
+    .icon-btn {
+      appearance: none;
+      border: 0;
+      background: #e8e8ed;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
       white-space: nowrap;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(2, 6, 23, 0.26);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      overflow: hidden;
+    .icon-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .hero { margin-bottom: 32px; }
+    .hero .fuel { font-size: 0.95rem; color: var(--muted); }
+    .hero .price {
+      font-size: 4.5rem;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 6px 0 10px;
+      font-variant-numeric: tabular-nums;
     }
+    .hero .price small { font-size: 1.1rem; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-left: 6px; }
+    .hero .meta { font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
+    .hero .meta b { color: var(--text); font-weight: 500; }
 
-    th, td { padding: 12px 12px; border-bottom: 1px solid rgba(148, 163, 184, 0.1); text-align: left; }
-    th { color: var(--muted); font-size: 0.9rem; font-weight: 700; background: rgba(15, 23, 42, 0.7); }
-    tbody tr:hover { background: rgba(30, 41, 59, 0.42); }
-    .num { text-align: right; font-variant-numeric: tabular-nums; }
-    .remark { margin-top: 14px; color: var(--muted); line-height: 1.65; white-space: pre-line; }
-
-    .chart-card canvas {
-      display: block;
-      width: 100%;
-      height: 260px;
-      background: rgba(2, 6, 23, 0.2);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-    }
-
-    .history-table-wrap { max-height: 320px; overflow: auto; border-radius: 16px; }
-
-    .iframe-wrap { height: 100%; display: flex; flex-direction: column; min-height: 980px; }
-    .iframe-head { padding: 18px 18px 0; }
-    .iframe-body { padding: 14px 18px 18px; flex: 1; }
-    iframe {
-      width: 100%;
-      height: 100%;
-      min-height: 875px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: #fff;
-    }
-
-    .tiny { font-size: 0.84rem; color: var(--muted); line-height: 1.6; margin-top: 10px; }
-
-
-    .planner-grid {
-      display: grid;
-      grid-template-columns: 1.1fr 1.1fr 0.9fr;
-      gap: 12px;
-      margin-top: 18px;
-    }
-
-    .planner-results {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .planner-mini {
-      margin-top: 14px;
-      color: var(--muted);
-      line-height: 1.65;
+    .notice {
       font-size: 0.9rem;
+      color: var(--danger);
+      background: #fff1f0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
     }
 
-    .segmented {
-      display: inline-flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
+    h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 14px; }
+
+    .panel { background: var(--card); border-radius: var(--radius); padding: 6px 20px; margin-bottom: 32px; }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
     }
 
-    .seg-btn {
-      border: 1px solid var(--line);
-      background: rgba(2, 6, 23, 0.36);
+    .row:last-child { border-bottom: 0; }
+    .row label { font-size: 1rem; }
+    .row .hint { display: block; font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+    .row input {
+      width: 140px;
+      text-align: right;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      font-size: 1rem;
       color: var(--text);
-      border-radius: 999px;
-      padding: 8px 12px;
+      font-variant-numeric: tabular-nums;
+      outline: none;
+    }
+
+    .row input[type="date"] { width: 160px; }
+    .row input::placeholder { color: #c7c7cc; }
+
+    .total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 16px 0 6px;
+    }
+    .total .k { color: var(--muted); font-size: 0.95rem; }
+    .total .v { font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .message { font-size: 0.9rem; min-height: 1.3em; margin: 4px 0 0; color: var(--muted); }
+    .message.error { color: var(--danger); }
+    .message.ok { color: var(--ok); }
+
+    .btn {
+      width: 100%;
+      appearance: none;
+      border: 0;
+      border-radius: 14px;
+      padding: 14px;
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      background: var(--accent);
+      color: #fff;
       cursor: pointer;
-      font-weight: 700;
-      font-size: 0.88rem;
+      margin: 8px 0 32px;
     }
 
-    .seg-btn.active {
-      background: rgba(21, 128, 61, 0.18);
-      border-color: rgba(34, 197, 94, 0.35);
-      color: #dcfce7;
+    .btn:disabled { opacity: 0.5; cursor: default; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 32px;
     }
 
-    @media (max-width: 1260px) {
-      .grid-top, .metrics-grid, .config-grid, .decision-grid, .planner-grid, .planner-results { grid-template-columns: 1fr 1fr; }
-      .layout-main { grid-template-columns: 1fr; }
-      .iframe-wrap { min-height: 0; }
+    .stats div { background: var(--card); padding: 18px 14px; }
+    .stats .k { font-size: 0.78rem; color: var(--muted); }
+    .stats .v { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 4px; letter-spacing: -0.02em; }
+    .stats .n { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    .list { list-style: none; margin: 0; padding: 0; }
+
+    .list li {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2px 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.95rem;
     }
 
-    @media (max-width: 760px) {
-      body { padding: 14px; }
-      .card-inner, .iframe-body { padding: 14px; }
-      .iframe-head { padding: 14px 14px 0; }
-      .metrics-grid, .meta-grid, .config-grid, .decision-grid, .grid-top, .planner-grid, .planner-results { grid-template-columns: 1fr; }
-      th, td { padding: 10px 9px; font-size: 0.92rem; }
-      iframe { min-height: 760px; }
-      .actions, .btn { width: 100%; }
+    .list li:last-child { border-bottom: 0; }
+    .list .r { text-align: right; font-variant-numeric: tabular-nums; }
+    .list .s { color: var(--muted); font-size: 0.82rem; grid-column: 1 / -1; }
+
+    details { background: var(--card); border-radius: var(--radius); padding: 0 20px; margin-bottom: 14px; }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 18px 0;
+      font-size: 1rem;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; color: var(--muted); font-size: 1.3rem; font-weight: 300; }
+    details[open] summary::after { content: "−"; }
+    details .inner { padding: 0 0 20px; font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+    .chart svg { width: 100%; height: auto; display: block; }
+    .legend { font-size: 0.8rem; color: var(--muted); margin-top: 8px; display: flex; gap: 14px; }
+    .legend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin-right: 6px; }
+
+    iframe { width: 100%; height: 340px; border: 0; border-radius: 12px; }
+
+    .foot { font-size: 0.8rem; color: var(--muted); text-align: center; margin-top: 24px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="hero">
+  <main>
+    <header class="top">
+      <div class="switch" role="group" aria-label="เลือกยานพาหนะ">
+        <button data-vehicle="moto" aria-pressed="true">มอเตอร์ไซค์</button>
+        <button data-vehicle="car" aria-pressed="false">รถยนต์</button>
+      </div>
+      <button class="icon-btn" id="refresh">รีเฟรช</button>
+    </header>
+
+    <section class="hero">
+      <div class="fuel" id="fuelName">-</div>
+      <div class="price"><span id="estPrice">-</span><small>บาท/ลิตร</small></div>
+      <div class="meta">
+        ราคาประกาศ <b id="announced">-</b> · ราคาหน้าปั๊มโดยประมาณ<br />
+        <span id="heroRef"></span>
+      </div>
+    </section>
+
+    <p class="notice" id="notice" hidden></p>
+
+    <h2>บันทึกการเติม</h2>
+    <section class="panel">
+      <div class="row">
+        <label for="fillDate">วันที่</label>
+        <input id="fillDate" type="date" />
+      </div>
+      <div class="row">
+        <label for="odometer">เลขไมล์</label>
+        <input id="odometer" type="number" inputmode="numeric" min="0" step="1" placeholder="กม." />
+      </div>
+      <div class="row">
+        <label for="liters">ลิตร</label>
+        <input id="liters" type="number" inputmode="decimal" min="0" step="0.01" placeholder="ลิตร" />
+      </div>
+      <div class="row">
+        <div>
+          <label for="paid">ราคาที่จ่ายจริง</label>
+          <span class="hint">จากใบเสร็จ ตั้งต้นจากประมาณการ</span>
+        </div>
+        <input id="paid" type="number" inputmode="decimal" min="0" step="0.01" />
+      </div>
+    </section>
+
+    <div class="total">
+      <span class="k">รวม</span>
+      <span class="v" id="total">0 บาท</span>
+    </div>
+    <p class="message" id="message"></p>
+    <button class="btn" id="save">บันทึก</button>
+
+    <section class="stats">
       <div>
-        <h1 class="title">Bangchak Fuel Decision Dashboard</h1>
-        <div class="subtitle">
-          โฟกัสแก๊สโซฮอล์ 95 S EVO เทียบกับ E20 ด้านบน พร้อมสรุปความคุ้ม, คำนวณค่าเติม/ค่าวิ่ง, เก็บประวัติราคาไว้ที่ไฟล์ของโปรเจกต์ มีกราฟส่วนต่างย้อนหลัง และมี decision tool สำหรับรถ map G95 ที่กำลังมอง E20
-        </div>
+        <div class="k">กม./ลิตร</div>
+        <div class="v" id="kmpl">-</div>
+        <div class="n" id="kmplNote">-</div>
       </div>
-      <div class="actions">
-        <button id="refreshBtn" class="btn btn-primary">Refresh</button>
-        <button id="copySummaryBtn" class="btn btn-secondary">Copy Summary</button>
+      <div>
+        <div class="k">บาท/กม.</div>
+        <div class="v" id="costKm">-</div>
+        <div class="n">ประมาณ</div>
       </div>
-    </div>
-
-    <section class="grid-top">
-      <div class="card focus-card">
-        <div class="card-inner">
-          <div class="focus-label">Focus Fuel</div>
-          <h2 class="focus-name">แก๊สโซฮอล์ 95 S EVO</h2>
-          <div id="g95Price" class="focus-price">-</div>
-          <div class="focus-meta">
-            <div class="pill">เมื่อวาน <span id="g95Yesterday">-</span></div>
-            <div class="pill">พรุ่งนี้ <span id="g95Tomorrow">-</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card focus-card">
-        <div class="card-inner">
-          <div class="focus-label">Focus Fuel</div>
-          <h2 class="focus-name">E20</h2>
-          <div id="e20Price" class="focus-price">-</div>
-          <div class="focus-meta">
-            <div class="pill">เมื่อวาน <span id="e20Yesterday">-</span></div>
-            <div class="pill">พรุ่งนี้ <span id="e20Tomorrow">-</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-inner summary-card">
-          <h2 class="summary-title">ส่วนต่างราคา G95 - E20</h2>
-          <div id="spreadValue" class="spread-value">-</div>
-          <div id="spreadBadge" class="badge state-mid">รอข้อมูล</div>
-          <div id="spreadNote" class="summary-note">เมื่อกด Refresh แล้ว ระบบจะคำนวณส่วนต่างให้อัตโนมัติ</div>
-        </div>
+      <div>
+        <div class="k">ระยะล่าสุด</div>
+        <div class="v" id="lastKm">-</div>
+        <div class="n">กม.</div>
       </div>
     </section>
 
-    <section class="metrics-grid">
-      <div class="card"><div class="card-inner metric"><div class="metric-label">เติมตามจำนวนลิตรที่ตั้งไว้</div><div id="tankSavings" class="metric-value">-</div><div class="metric-sub">ประหยัดต่อครั้งเมื่อเลือก E20</div></div></div>
-      <div class="card"><div class="card-inner metric"><div class="metric-label">ค่าวิ่งต่อ 1,000 กม.</div><div id="tripSavings" class="metric-value">-</div><div class="metric-sub">คิดจากอัตราสิ้นเปลืองที่คุณกำหนด</div></div></div>
-      <div class="card"><div class="card-inner metric"><div class="metric-label">ต้นทุนต่อกม.</div><div id="costPerKm" class="metric-value">-</div><div class="metric-sub">แสดง G95 และ E20 เทียบกันตรง ๆ</div></div></div>
-      <div class="card"><div class="card-inner metric"><div class="metric-label">Decision Snapshot</div><div id="quickDecision" class="metric-value">-</div><div class="metric-sub">สรุปให้เร็วว่าวันนี้คุ้มระดับไหน</div></div></div>
+    <h2>ประวัติล่าสุด</h2>
+    <section class="panel" style="padding-top:0;padding-bottom:0;">
+      <ul class="list" id="history"><li><span>กำลังโหลด...</span></li></ul>
     </section>
 
-    <section class="card">
-      <div class="card-inner">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">การตั้งค่าคำนวณ</h2>
-            <p class="section-subtitle">ค่าพวกนี้จะถูกเก็บไว้ในเครื่องของคุณด้วย localStorage</p>
-          </div>
-          <div class="chip">Step 1: ใช้งานจริงทันที</div>
+    <details>
+      <summary>ราคาย้อนหลัง</summary>
+      <div class="inner">
+        <div class="chart">
+          <svg id="chart" viewBox="0 0 520 190" role="img" aria-label="กราฟราคาย้อนหลัง"></svg>
         </div>
-
-        <div class="config-grid">
-          <div class="field">
-            <label for="tankLiters">จำนวนลิตรที่เติมประจำ</label>
-            <input id="tankLiters" type="number" min="1" step="0.1" value="40">
-          </div>
-          <div class="field">
-            <label for="distanceKm">ระยะทางอ้างอิง</label>
-            <input id="distanceKm" type="number" min="1" step="1" value="1000">
-          </div>
-          <div class="field">
-            <label for="g95KmPerL">G95 วิ่งได้ (กม./ลิตร)</label>
-            <input id="g95KmPerL" type="number" min="1" step="0.1" value="14">
-          </div>
-          <div class="field">
-            <label for="e20KmPerL">E20 วิ่งได้ (กม./ลิตร)</label>
-            <input id="e20KmPerL" type="number" min="1" step="0.1" value="13.4">
-          </div>
-        </div>
+        <div class="legend"><span><i id="legMainColor" style="background:#0071e3"></i><span id="legMain">-</span></span><span><i style="background:#c7c7cc"></i><span id="legRef">-</span></span></div>
       </div>
-    </section>
+    </details>
 
-    <section class="card" style="margin-top:18px;">
-      <div class="card-inner">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">Decision Tool สำหรับรถ map G95 ที่กำลังมอง E20</h2>
-            <p class="section-subtitle">ตั้งใจออกแบบให้ตอบโจทย์เคสของคุณ: ไม่มีค่าจูนเพิ่ม และจะใช้รถอีกหลายปี</p>
-          </div>
-          <div id="decisionBadge" class="badge state-mid">รอข้อมูล</div>
-        </div>
-
-        <div class="decision-grid">
-          <div class="box">
-            <div class="box-label">คำแนะนำหลัก</div>
-            <div id="decisionMain" class="box-value">-</div>
-          </div>
-          <div class="box">
-            <div class="box-label">เหตุผลด้านราคา</div>
-            <div id="decisionPrice" class="box-value">-</div>
-          </div>
-          <div class="box">
-            <div class="box-label">เหตุผลด้านระยะยาว</div>
-            <div id="decisionLongTerm" class="box-value">-</div>
-          </div>
-        </div>
-        <div id="decisionNote" class="note" style="margin-top:14px;">-</div>
+    <details>
+      <summary>ข้อมูลจาก Bangchak</summary>
+      <div class="inner">
+        <div id="sourceInfo">-</div>
+        <p style="margin:10px 0 12px;">ราคาประกาศเป็นราคา กทม. ที่ยังไม่รวมภาษีบำรุงท้องถิ่น กทม. ราคาหน้าปั๊มจริงอาจต่างกันเล็กน้อยตามพื้นที่</p>
+        <iframe src="https://oil-price.bangchak.co.th/BcpOilPrice1/th" title="Bangchak Oil Price Widget" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
-    </section>
+    </details>
 
-
-
-    <section class="card" style="margin-top:18px;">
-      <div class="card-inner">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">Fuel Planner</h2>
-            <p class="section-subtitle">คำนวณต่อยอดจากราคาปัจจุบันได้ทันที: เติมเงิน X บาท จะได้กี่ลิตรและวิ่งได้ประมาณเท่าไร หรือถ้าจะวิ่ง X กม. ควรเติมกี่บาท</p>
-          </div>
-          <div class="chip">Step 3: Planning Tool</div>
-        </div>
-
-        <div class="segmented" id="presetWrap">
-          <button type="button" class="seg-btn active" data-preset="custom">กำหนดเอง</button>
-          <button type="button" class="seg-btn" data-preset="city">ในเมือง</button>
-          <button type="button" class="seg-btn" data-preset="highway">ทางไกล</button>
-        </div>
-
-        <div class="planner-grid">
-          <div class="box">
-            <div class="box-label">โหมด A: เติมเงินเท่านี้</div>
-            <div class="field"><label for="budgetBaht">จำนวนเงินที่เติม (บาท)</label><input id="budgetBaht" type="number" min="0" step="1" value="800"></div>
-            <div class="field" style="margin-top:12px;"><label for="budgetFuelType">ชนิดน้ำมันที่ใช้คำนวณ</label><input id="budgetFuelType" type="text" value="G95 S EVO" readonly></div>
-            <div class="planner-results">
-              <div class="metric"><div class="metric-label">ได้น้ำมันประมาณ</div><div id="budgetLiters" class="metric-value">-</div><div class="metric-sub">ลิตรจากเงินที่กรอก</div></div>
-              <div class="metric"><div class="metric-label">วิ่งได้ประมาณ</div><div id="budgetDistance" class="metric-value">-</div><div class="metric-sub">คำนวณตาม km/L ที่ตั้งไว้</div></div>
-              <div class="metric"><div class="metric-label">ต้นทุนต่อกม.</div><div id="budgetCostPerKm" class="metric-value">-</div><div class="metric-sub">เฉลี่ยจากน้ำมันชนิดที่เลือก</div></div>
-            </div>
-          </div>
-
-          <div class="box">
-            <div class="box-label">โหมด B: อยากวิ่งให้ได้ระยะนี้</div>
-            <div class="field"><label for="targetDistanceKm">ระยะทางที่ต้องการวิ่ง (กม.)</label><input id="targetDistanceKm" type="number" min="1" step="1" value="500"></div>
-            <div class="field" style="margin-top:12px;"><label for="reservePercent">เผื่อสำรอง (%)</label><input id="reservePercent" type="number" min="0" step="1" value="10"></div>
-            <div class="planner-results">
-              <div class="metric"><div class="metric-label">G95 ควรใช้</div><div id="needG95Liters" class="metric-value">-</div><div class="metric-sub">ลิตรที่ควรมีในถัง</div></div>
-              <div class="metric"><div class="metric-label">E20 ควรใช้</div><div id="needE20Liters" class="metric-value">-</div><div class="metric-sub">ลิตรที่ควรมีในถัง</div></div>
-              <div class="metric"><div class="metric-label">ส่วนต่างค่าเติม</div><div id="needSavings" class="metric-value">-</div><div class="metric-sub">G95 เทียบกับ E20</div></div>
-            </div>
-          </div>
-
-          <div class="box">
-            <div class="box-label">สรุปเร็ว</div>
-            <div class="planner-results" style="grid-template-columns:1fr; margin-top:0;">
-              <div class="metric"><div class="metric-label">G95 ต้องเติมประมาณ</div><div id="needG95Baht" class="metric-value">-</div><div class="metric-sub">สำหรับระยะทางที่ตั้งไว้</div></div>
-              <div class="metric"><div class="metric-label">E20 ต้องเติมประมาณ</div><div id="needE20Baht" class="metric-value">-</div><div class="metric-sub">สำหรับระยะทางที่ตั้งไว้</div></div>
-              <div class="metric"><div class="metric-label">Planner Summary</div><div id="plannerSummary" class="metric-value">-</div><div class="metric-sub">สรุปเป็นภาษาคนอ่านง่าย</div></div>
-            </div>
-            <div class="planner-mini" id="plannerMiniNote">ระบบจะใช้ค่า km/L จากช่องการตั้งค่าด้านบน และคำนวณจากราคาปัจจุบันของ G95 S EVO / E20</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-    <div class="layout-main">
-      <section class="card">
-        <div class="card-inner">
-          <h2 class="section-title">ข้อมูลจาก API / Service</h2>
-          <p class="section-subtitle">เหมาะสำหรับกดรีเฟรชเร็ว ๆ และดูตารางราคาแบบอ่านง่าย</p>
-
-          <p id="status" class="status">ยังไม่ได้โหลดข้อมูล</p>
-          <div id="errorBox" class="error"></div>
-
-          <div class="meta-grid">
-            <div class="box">
-              <div class="box-label">วันที่ข้อมูลปัจจุบัน</div>
-              <div id="oilDateNow" class="box-value">-</div>
-            </div>
-            <div class="box">
-              <div class="box-label">วันที่/เวลา ประกาศราคา</div>
-              <div id="oilPriceDateTime" class="box-value">-</div>
-            </div>
-            <div class="box">
-              <div class="box-label">วันที่/เวลา มีผล</div>
-              <div id="oilRemark2" class="box-value">-</div>
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="section-head">
-              <h3 class="section-title" style="margin:0;">ตารางราคา</h3>
-              <div class="chip">เปรียบเทียบ Yesterday / Today / Tomorrow</div>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>ชนิดน้ำมัน</th>
-                  <th class="num">เมื่อวาน</th>
-                  <th class="num">วันนี้</th>
-                  <th class="num">พรุ่งนี้</th>
-                </tr>
-              </thead>
-              <tbody id="oilTableBody">
-                <tr><td colspan="4">ยังไม่มีข้อมูล</td></tr>
-              </tbody>
-            </table>
-            <div id="remark" class="remark"></div>
-          </div>
-        </div>
-      </section>
-
-      <aside class="card iframe-wrap">
-        <div class="iframe-head">
-          <h2 class="section-title">Official Bangchak Widget</h2>
-          <p class="section-subtitle">ใช้ดูหน้าอ้างอิงตรงจาก Bangchak ถ้าข้อมูลฝั่ง API ดูเหมือนช้า สามารถดูเทียบกับ widget นี้ได้ทันที</p>
-        </div>
-        <div class="iframe-body">
-          <iframe src="https://oil-price.bangchak.co.th/BcpOilPrice1/th" title="Bangchak Oil Price Widget" frameborder="0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-          <div class="tiny">widget ฝั่งขวาโหลดจากเว็บปลายทางโดยตรง ส่วนตารางฝั่งซ้ายโหลดผ่าน local server จึงอาจมีจังหวะที่ข้อมูลอัปเดตไม่พร้อมกัน</div>
-        </div>
-      </aside>
-    </div>
-
-    <section class="card chart-card">
-      <div class="card-inner">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">กราฟส่วนต่าง G95 - E20 ย้อนหลัง</h2>
-            <p class="section-subtitle">บันทึกทุกครั้งที่ราคา G95 หรือ E20 เปลี่ยน อัปเดตวันละครั้งโดยอัตโนมัติ</p>
-          </div>
-          <div class="chip">Step 2: History + Graph</div>
-        </div>
-        <canvas id="historyChart" width="1200" height="260"></canvas>
-        <div class="tiny">แกนตั้งคือบาท/ลิตร ยิ่งเส้นสูงยิ่งหมายถึง E20 ถูกกว่า G95 มากขึ้น</div>
-      </div>
-    </section>
-
-    <section class="card" style="margin-top:18px;">
-      <div class="card-inner">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">ประวัติราคาที่บันทึกไว้</h2>
-            <p class="section-subtitle">ใช้ดูว่าช่วงนี้ส่วนต่างกำลังขยายหรือแคบลง</p>
-          </div>
-          <div id="historyCount" class="chip">0 records</div>
-        </div>
-
-        <div class="history-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>เวลาเก็บ</th>
-                <th class="num">G95</th>
-                <th class="num">E20</th>
-                <th class="num">ส่วนต่าง</th>
-                <th>วันที่ข้อมูล</th>
-              </tr>
-            </thead>
-            <tbody id="historyBody">
-              <tr><td colspan="5">ยังไม่มีประวัติ</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  </div>
+    <p class="foot">ข้อมูลราคาอัปเดตโดยอัตโนมัติ</p>
+  </main>
 
   <script>
-    const refreshBtn = document.getElementById('refreshBtn');
-    const copySummaryBtn = document.getElementById('copySummaryBtn');
-    const statusEl = document.getElementById('status');
-    const errorBox = document.getElementById('errorBox');
-    const oilDateNowEl = document.getElementById('oilDateNow');
-    const oilPriceDateTimeEl = document.getElementById('oilPriceDateTime');
-    const oilRemark2El = document.getElementById('oilRemark2');
-    const oilTableBody = document.getElementById('oilTableBody');
-    const remarkEl = document.getElementById('remark');
+    // Google Apps Script web app that stores fill-ups in the "Fuel Log" sheet.
+    const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxoiU69XGPdY9rocmoH2VaEmiWxIHfcEEOyxRWnVgPWw1jHsWCr5Sm9R5Sd92oHQVq4tg/exec';
 
-    const g95PriceEl = document.getElementById('g95Price');
-    const g95YesterdayEl = document.getElementById('g95Yesterday');
-    const g95TomorrowEl = document.getElementById('g95Tomorrow');
-    const e20PriceEl = document.getElementById('e20Price');
-    const e20YesterdayEl = document.getElementById('e20Yesterday');
-    const e20TomorrowEl = document.getElementById('e20Tomorrow');
-    const spreadValueEl = document.getElementById('spreadValue');
-    const spreadBadgeEl = document.getElementById('spreadBadge');
-    const spreadNoteEl = document.getElementById('spreadNote');
-
-    const tankSavingsEl = document.getElementById('tankSavings');
-    const tripSavingsEl = document.getElementById('tripSavings');
-    const costPerKmEl = document.getElementById('costPerKm');
-    const quickDecisionEl = document.getElementById('quickDecision');
-
-    const decisionBadgeEl = document.getElementById('decisionBadge');
-    const decisionMainEl = document.getElementById('decisionMain');
-    const decisionPriceEl = document.getElementById('decisionPrice');
-    const decisionLongTermEl = document.getElementById('decisionLongTerm');
-    const decisionNoteEl = document.getElementById('decisionNote');
-
-    const tankLitersInput = document.getElementById('tankLiters');
-    const distanceKmInput = document.getElementById('distanceKm');
-    const g95KmPerLInput = document.getElementById('g95KmPerL');
-    const e20KmPerLInput = document.getElementById('e20KmPerL');
-    const budgetBahtInput = document.getElementById('budgetBaht');
-    const targetDistanceKmInput = document.getElementById('targetDistanceKm');
-    const reservePercentInput = document.getElementById('reservePercent');
-    const budgetFuelTypeInput = document.getElementById('budgetFuelType');
-    const budgetLitersEl = document.getElementById('budgetLiters');
-    const budgetDistanceEl = document.getElementById('budgetDistance');
-    const budgetCostPerKmEl = document.getElementById('budgetCostPerKm');
-    const needG95LitersEl = document.getElementById('needG95Liters');
-    const needE20LitersEl = document.getElementById('needE20Liters');
-    const needSavingsEl = document.getElementById('needSavings');
-    const needG95BahtEl = document.getElementById('needG95Baht');
-    const needE20BahtEl = document.getElementById('needE20Baht');
-    const plannerSummaryEl = document.getElementById('plannerSummary');
-    const plannerMiniNoteEl = document.getElementById('plannerMiniNote');
-    const presetWrap = document.getElementById('presetWrap');
-
-    const historyBody = document.getElementById('historyBody');
-    const historyCountEl = document.getElementById('historyCount');
-    const chartCanvas = document.getElementById('historyChart');
-    const chartCtx = chartCanvas.getContext('2d');
-
-    const STORAGE_KEYS = {
-      settings: 'bangchak-dashboard-settings-v2'
+    const VEHICLES = {
+      moto: { label: 'มอเตอร์ไซค์', fuel: 'G95', ref: 'E20', defaultKmpl: 36, fuelName: 'แก๊สโซฮอล์ 95 S EVO' },
+      car: { label: 'รถยนต์ Mazda 3', fuel: 'E20', ref: 'G95', defaultKmpl: 13.4, fuelName: 'แก๊สโซฮอล์ E20 S EVO' },
     };
 
-    let latestData = { g95: null, e20: null, root: null, spread: null };
-    let historyRows = [];
+    const OIL_NAMES = {
+      G95: { exact: ['แก๊สโซฮอล์ 95 S EVO', 'Gasohol 95 S EVO'], keys: ['95sevo', 'gasohol95sevo', 'แก๊สโซฮอล์95sevo'] },
+      E20: { exact: ['แก๊สโซฮอล์ E20 S EVO', 'Gasohol E20 S EVO', 'E20 S EVO'], keys: ['e20sevo', 'gasohole20', 'แก๊สโซฮอล์e20'] },
+    };
 
-    function escapeHtml(text) {
-      return String(text)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
+    const state = {
+      current: 'moto',
+      prices: null,       // { G95: {today, yesterday, tomorrow}, E20: {...} }
+      priceMeta: null,    // { priceDate, priceTime, fetchedAt }
+      history: [],        // price history rows from data/history.json
+      fills: { car: [], moto: [] },
+      paidEdited: false,
+    };
+
+    const $ = id => document.getElementById(id);
+
+    function fmt(n, digits = 1) {
+      return Number.isFinite(n)
+        ? n.toLocaleString('th-TH', { maximumFractionDigits: digits, minimumFractionDigits: digits })
+        : '-';
     }
 
-    function toNumber(value) {
-      const num = Number(value);
-      return Number.isFinite(num) ? num : null;
-    }
-
-    function formatPrice(value) {
-      const num = toNumber(value);
-      return num !== null ? num.toFixed(2) : '-';
-    }
-
-    function formatMoney(value, suffix = 'บาท') {
-      const num = toNumber(value);
-      return num !== null ? `${num.toFixed(2)} ${suffix}` : '-';
-    }
-
-    function formatDateTime(value) {
-      try {
-        return new Date(value).toLocaleString('th-TH');
-      } catch {
-        return value || '-';
-      }
-    }
-
-    function normalizeName(name) {
+    function normalize(name) {
       return String(name || '').toLowerCase().replace(/\s+/g, '').replace(/-/g, '').replace(/\./g, '');
     }
 
-    function findOilByPriority(oilList, exactNames = [], keywords = []) {
-      const exactNormalized = exactNames.map(normalizeName);
-      const keywordNormalized = keywords.map(normalizeName);
-      const exactMatch = oilList.find(item => exactNormalized.includes(normalizeName(item.OilName)));
-      if (exactMatch) return exactMatch;
-      return oilList.find(item => {
-        const name = normalizeName(item.OilName);
-        return keywordNormalized.some(keyword => name.includes(keyword));
-      }) || null;
+    function findOil(list, fuel) {
+      const exact = OIL_NAMES[fuel].exact.map(normalize);
+      const hit = list.find(item => exact.includes(normalize(item.OilName)));
+      if (hit) return hit;
+      const keys = OIL_NAMES[fuel].keys.map(normalize);
+      return list.find(item => keys.some(k => normalize(item.OilName).includes(k))) || null;
     }
 
-    function getSettings() {
-      const defaults = { tankLiters: 40, distanceKm: 1000, g95KmPerL: 14, e20KmPerL: 13.4, budgetBaht: 800, targetDistanceKm: 500, reservePercent: 10, preset: 'custom' };
-      try {
-        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || '{}');
-        return { ...defaults, ...parsed };
-      } catch {
-        return defaults;
-      }
+    // Dates from the Sheet may come back as ISO timestamps in UTC. Show them as Bangkok calendar dates.
+    function bangkokDate(value) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return String(value);
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return String(value);
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
     }
 
-    function saveSettings() {
-      const settings = {
-        tankLiters: toNumber(tankLitersInput.value) ?? 40,
-        distanceKm: toNumber(distanceKmInput.value) ?? 1000,
-        g95KmPerL: toNumber(g95KmPerLInput.value) ?? 14,
-        e20KmPerL: toNumber(e20KmPerLInput.value) ?? 13.4,
-        budgetBaht: toNumber(budgetBahtInput.value) ?? 800,
-        targetDistanceKm: toNumber(targetDistanceKmInput.value) ?? 500,
-        reservePercent: toNumber(reservePercentInput.value) ?? 10,
-        preset: document.querySelector('.seg-btn.active')?.dataset.preset || 'custom',
-      };
-      localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
-      recalcMetrics();
+    function todayBangkok() {
+      return bangkokDate(new Date());
     }
 
-    function applySettingsToInputs() {
-      const s = getSettings();
-      tankLitersInput.value = s.tankLiters;
-      distanceKmInput.value = s.distanceKm;
-      g95KmPerLInput.value = s.g95KmPerL;
-      e20KmPerLInput.value = s.e20KmPerL;
-      budgetBahtInput.value = s.budgetBaht;
-      targetDistanceKmInput.value = s.targetDistanceKm;
-      reservePercentInput.value = s.reservePercent;
-      setActivePreset(s.preset || 'custom', false);
+    function vehicle() { return VEHICLES[state.current]; }
+
+    function sortedFills(key) {
+      return [...state.fills[key]].sort((a, b) =>
+        a.date.localeCompare(b.date) || String(a.createdAt).localeCompare(String(b.createdAt)));
     }
 
-    function getHistory() {
-      return historyRows;
+    function announcedToday(fuel) {
+      return state.prices ? state.prices[fuel].today : null;
     }
 
-    function renderFocusCards(g95, e20) {
-      g95PriceEl.textContent = formatPrice(g95?.PriceToday);
-      g95YesterdayEl.textContent = formatPrice(g95?.PriceYesterday);
-      g95TomorrowEl.textContent = formatPrice(g95?.PriceTomorrow);
-
-      e20PriceEl.textContent = formatPrice(e20?.PriceToday);
-      e20YesterdayEl.textContent = formatPrice(e20?.PriceYesterday);
-      e20TomorrowEl.textContent = formatPrice(e20?.PriceTomorrow);
+    // Gap between what the pump charged and the announced price, from the latest fill.
+    function offset(key) {
+      const rows = sortedFills(key);
+      const last = rows[rows.length - 1];
+      return last ? last.paid - last.announced : 0;
     }
 
-    function spreadState(spread) {
-      if (spread === null) return { cls: 'state-mid', label: 'รอข้อมูล', note: 'ยังไม่มีข้อมูลพอสำหรับสรุป' };
-      if (spread >= 4) return { cls: 'state-great', label: 'คุ้มมาก', note: 'ส่วนต่างระดับนี้ถือว่าเด่นมาก เหมาะกับการมอง E20 แบบจริงจัง' };
-      if (spread >= 3) return { cls: 'state-good', label: 'เริ่มคุ้มชัด', note: 'ส่วนต่างเกิน 3 บาท เริ่มตอบโจทย์การใช้ระยะยาวชัดขึ้น' };
-      if (spread >= 2) return { cls: 'state-mid', label: 'กลาง ๆ', note: 'ต่างพอสมควร แต่ยังควรดูอัตราสิ้นเปลืองประกอบ' };
-      return { cls: 'state-low', label: 'ยังไม่เด่น', note: 'ต่างไม่มาก ความคุ้มของการเปลี่ยนชนิดน้ำมันอาจยังไม่ชัด' };
+    function estimatedPump(key) {
+      const announced = announcedToday(VEHICLES[key].fuel);
+      return announced === null ? null : announced + offset(key);
     }
 
-    function renderSpread(spread) {
-      if (spread === null) {
-        spreadValueEl.textContent = '-';
-        spreadBadgeEl.className = 'badge state-mid';
-        spreadBadgeEl.textContent = 'หา แก๊สโซฮอล์ 95 S EVO / E20 ไม่ครบ';
-        spreadNoteEl.textContent = 'ลองกด Refresh ใหม่ หรือเช็กชื่อในข้อมูลดิบ';
-        return;
-      }
-      const state = spreadState(spread);
-      spreadValueEl.textContent = `${spread.toFixed(2)} บาท/ลิตร`;
-      spreadBadgeEl.className = `badge ${state.cls}`;
-      spreadBadgeEl.textContent = state.label;
-      spreadNoteEl.textContent = state.note;
+    // Distance from the first reading to the latest, divided by all liters added after the first fill.
+    // Partial fills make this an estimate; it firms up as more fills are recorded.
+    function efficiency(key) {
+      const rows = sortedFills(key);
+      const fallback = { kmpl: VEHICLES[key].defaultKmpl, measured: false, count: 0 };
+      if (rows.length < 2) return fallback;
+      const km = rows[rows.length - 1].odometer - rows[0].odometer;
+      const liters = rows.slice(1).reduce((sum, r) => sum + r.liters, 0);
+      if (!(km > 0 && liters > 0)) return fallback;
+      return { kmpl: km / liters, measured: true, count: rows.length - 1 };
     }
 
-    function recalcMetrics() {
-      const g95Today = latestData.g95 ? toNumber(latestData.g95.PriceToday) : null;
-      const e20Today = latestData.e20 ? toNumber(latestData.e20.PriceToday) : null;
-      const spread = latestData.spread;
-      const settings = getSettings();
-      if (g95Today === null || e20Today === null) {
-        tankSavingsEl.textContent = '-';
-        tripSavingsEl.textContent = '-';
-        costPerKmEl.textContent = '-';
-        quickDecisionEl.textContent = '-';
-        renderDecisionTool(null, settings);
-        recalcPlanner();
-        return;
-      }
+    function lastDistance(key) {
+      const rows = sortedFills(key);
+      if (rows.length < 2) return null;
+      return rows[rows.length - 1].odometer - rows[rows.length - 2].odometer;
+    }
 
-      const tankSavings = (g95Today - e20Today) * settings.tankLiters;
-      const g95TripCost = (settings.distanceKm / settings.g95KmPerL) * g95Today;
-      const e20TripCost = (settings.distanceKm / settings.e20KmPerL) * e20Today;
-      const tripSavings = g95TripCost - e20TripCost;
-      const g95CostPerKm = g95Today / settings.g95KmPerL;
-      const e20CostPerKm = e20Today / settings.e20KmPerL;
-
-      tankSavingsEl.textContent = formatMoney(tankSavings);
-      tripSavingsEl.textContent = formatMoney(tripSavings);
-      costPerKmEl.innerHTML = `G95 ${g95CostPerKm.toFixed(2)} บ./กม.<br>E20 ${e20CostPerKm.toFixed(2)} บ./กม.`;
-
-      const state = spreadState(spread);
-      if (tripSavings > 0 && spread >= 3) {
-        quickDecisionEl.textContent = 'E20 เด่น';
-      } else if (tripSavings > 0) {
-        quickDecisionEl.textContent = 'E20 ยังได้เปรียบ';
-      } else if (tripSavings === 0) {
-        quickDecisionEl.textContent = 'สูสีมาก';
+    function renderHero() {
+      const v = vehicle();
+      const est = estimatedPump(state.current);
+      const announced = announcedToday(v.fuel);
+      const otherAnnounced = announcedToday(v.ref);
+      $('fuelName').textContent = v.fuelName;
+      $('estPrice').textContent = est === null ? '-' : fmt(est, 2);
+      $('announced').textContent = announced === null ? '-' : fmt(announced, 2);
+      if (announced !== null && otherAnnounced !== null) {
+        const diff = announced - otherAnnounced;
+        $('heroRef').textContent = `${v.ref} ประมาณ ${fmt(otherAnnounced, 2)} บาท (${v.fuel} ${diff <= 0 ? 'ถูกกว่า' : 'แพงกว่า'} ${fmt(Math.abs(diff), 2)})`;
       } else {
-        quickDecisionEl.textContent = 'ต้องดูเพิ่ม';
+        $('heroRef').textContent = '';
       }
-
-      renderDecisionTool({ spread, tankSavings, tripSavings, g95CostPerKm, e20CostPerKm }, settings, state);
-      recalcPlanner();
+      $('legMain').textContent = v.fuel;
+      $('legRef').textContent = v.ref;
     }
 
-    function renderDecisionTool(metrics, settings, state = spreadState(metrics?.spread ?? null)) {
-      if (!metrics) {
-        decisionBadgeEl.className = 'badge state-mid';
-        decisionBadgeEl.textContent = 'รอข้อมูล';
-        decisionMainEl.textContent = '-';
-        decisionPriceEl.textContent = '-';
-        decisionLongTermEl.textContent = '-';
-        decisionNoteEl.textContent = 'เมื่อโหลดข้อมูลได้แล้ว ระบบจะสรุปให้ว่าความต่างของราคาไปถึงจุดที่น่ามอง E20 หรือยัง';
-        return;
-      }
-
-      const { spread, tankSavings, tripSavings, g95CostPerKm, e20CostPerKm } = metrics;
-      decisionBadgeEl.className = `badge ${state.cls}`;
-
-      if (spread >= 4) {
-        decisionBadgeEl.textContent = 'เหมาะมากกับ E20 map';
-        decisionMainEl.textContent = 'ถ้ายังไม่มีค่าจูนเพิ่มและตั้งใจใช้รถอีกหลายปี ระดับนี้น่าเปลี่ยนโฟกัสไป E20 มาก';
-      } else if (spread >= 3) {
-        decisionBadgeEl.textContent = 'เริ่มเข้าโซนคุ้ม';
-        decisionMainEl.textContent = 'ส่วนต่างระดับนี้เริ่มสนับสนุนการใช้ E20 ระยะยาวชัด โดยเฉพาะรถที่ไม่ต้องเสียค่าปรับ map เพิ่ม';
-      } else if (spread >= 2) {
-        decisionBadgeEl.textContent = 'ดูต่ออีกหน่อย';
-        decisionMainEl.textContent = 'ยังพอมีเหตุผลด้านราคา แต่ยังไม่ห่างมากพอจะฟันธงจากราคาล้วน ๆ';
-      } else {
-        decisionBadgeEl.textContent = 'ยังไม่ถึงจุดเร่ง';
-        decisionMainEl.textContent = 'ส่วนต่างยังแคบ ถ้าจะตัดสินใจตอนนี้ควรอาศัยเรื่องฟีลรถและความเหมาะของ map มากกว่าราคา';
-      }
-
-      decisionPriceEl.textContent = `ต่าง ${spread.toFixed(2)} บ./ลิตร, เติม ${settings.tankLiters} ลิตร ประหยัด ${tankSavings.toFixed(2)} บาท, วิ่ง ${settings.distanceKm.toLocaleString('th-TH')} กม. ประหยัด ${tripSavings.toFixed(2)} บาท`;
-
-      if (tripSavings > 0) {
-        decisionLongTermEl.textContent = `ต้นทุนต่อกม. E20 ต่ำกว่า G95 อยู่ ${(g95CostPerKm - e20CostPerKm).toFixed(2)} บาท/กม. ถ้าใช้รถหลายปี ผลต่างจะสะสมเรื่อย ๆ`;
-      } else {
-        decisionLongTermEl.textContent = 'แม้ราคาต่อลิตรจะต่ำกว่า แต่ถ้าอัตราสิ้นเปลืองต่างมากเกินไป ความคุ้มจริงอาจลดลง';
-      }
-
-      decisionNoteEl.textContent = spread >= 3
-        ? 'ตีความตามเคสของคุณ: ถ้ารถพร้อมใช้ E20, ไม่มีค่ารีแฟลชเพิ่ม และคุณตั้งใจใช้ยาว ๆ ช่วงราคานี้ถือว่าเริ่มมีเหตุผลมากพอที่จะขยับไปทาง E20 map'
-        : 'ตีความตามเคสของคุณ: ยังควรติดตามส่วนต่างต่อเนื่อง ถ้าขึ้นไปยืนเหนือ 3 บาทได้บ่อย หรือแตะ 4 บาทบ่อย ๆ จะตัดสินใจง่ายขึ้นมาก';
-    }
-
-
-    function setActivePreset(preset, persist = true) {
-      const buttons = presetWrap ? presetWrap.querySelectorAll('.seg-btn') : [];
-      buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.preset === preset));
-      if (preset === 'city') {
-        g95KmPerLInput.value = 11;
-        e20KmPerLInput.value = 10.4;
-      } else if (preset === 'highway') {
-        g95KmPerLInput.value = 16;
-        e20KmPerLInput.value = 15.3;
-      }
-      budgetFuelTypeInput.value = 'G95 S EVO';
-      if (persist) saveSettings();
-    }
-
-    function recalcPlanner() {
-      const g95Today = latestData.g95 ? toNumber(latestData.g95.PriceToday) : null;
-      const e20Today = latestData.e20 ? toNumber(latestData.e20.PriceToday) : null;
-      const s = getSettings();
-      if (g95Today === null || e20Today === null) {
-        [budgetLitersEl, budgetDistanceEl, budgetCostPerKmEl, needG95LitersEl, needE20LitersEl, needSavingsEl, needG95BahtEl, needE20BahtEl, plannerSummaryEl].forEach(el => el.textContent = '-');
-        plannerMiniNoteEl.textContent = 'ระบบจะใช้ค่า km/L จากช่องการตั้งค่าด้านบน และคำนวณจากราคาปัจจุบันของ G95 S EVO / E20';
-        return;
-      }
-
-      const budgetFuelName = budgetFuelTypeInput.value.includes('E20') ? 'E20' : 'G95 S EVO';
-      const budgetPrice = budgetFuelName === 'E20' ? e20Today : g95Today;
-      const budgetKmPerL = budgetFuelName === 'E20' ? s.e20KmPerL : s.g95KmPerL;
-      const budgetLiters = s.budgetBaht / budgetPrice;
-      const budgetDistance = budgetLiters * budgetKmPerL;
-      const budgetCostPerKm = budgetPrice / budgetKmPerL;
-
-      const multiplier = 1 + (s.reservePercent / 100);
-      const needG95Liters = (s.targetDistanceKm / s.g95KmPerL) * multiplier;
-      const needE20Liters = (s.targetDistanceKm / s.e20KmPerL) * multiplier;
-      const needG95Baht = needG95Liters * g95Today;
-      const needE20Baht = needE20Liters * e20Today;
-      const needSavings = needG95Baht - needE20Baht;
-
-      budgetLitersEl.textContent = `${budgetLiters.toFixed(2)} ลิตร`;
-      budgetDistanceEl.textContent = `${budgetDistance.toFixed(0)} กม.`;
-      budgetCostPerKmEl.textContent = `${budgetCostPerKm.toFixed(2)} บ./กม.`;
-      needG95LitersEl.textContent = `${needG95Liters.toFixed(2)} ลิตร`;
-      needE20LitersEl.textContent = `${needE20Liters.toFixed(2)} ลิตร`;
-      needSavingsEl.textContent = `${needSavings >= 0 ? '+' : ''}${needSavings.toFixed(2)} บาท`;
-      needG95BahtEl.textContent = `${needG95Baht.toFixed(2)} บาท`;
-      needE20BahtEl.textContent = `${needE20Baht.toFixed(2)} บาท`;
-      plannerSummaryEl.textContent = needSavings > 0 ? `E20 ถูกกว่าประมาณ ${needSavings.toFixed(0)} บาท` : 'สูสีหรือแพงกว่า';
-      plannerMiniNoteEl.textContent = `ถ้าเติม ${s.budgetBaht.toLocaleString('th-TH')} บาทเป็น ${budgetFuelName} ตอนนี้ จะได้ประมาณ ${budgetLiters.toFixed(2)} ลิตร และวิ่งได้ราว ${budgetDistance.toFixed(0)} กม. | ถ้าจะวิ่ง ${s.targetDistanceKm.toLocaleString('th-TH')} กม. โดยเผื่อ ${s.reservePercent}% ตอนนี้ G95 ต้องเตรียมประมาณ ${needG95Baht.toFixed(0)} บาท และ E20 ประมาณ ${needE20Baht.toFixed(0)} บาท`;
+    function renderStats() {
+      const key = state.current;
+      const eff = efficiency(key);
+      const est = estimatedPump(key);
+      $('kmpl').textContent = fmt(eff.kmpl);
+      $('kmplNote').textContent = eff.measured ? `จาก ${eff.count} ครั้งที่เติม` : 'ค่าเริ่มต้น';
+      $('costKm').textContent = est === null ? '-' : fmt(est / eff.kmpl, 2);
+      const last = lastDistance(key);
+      $('lastKm').textContent = last === null ? '-' : fmt(last, 0);
     }
 
     function renderHistory() {
-      const history = getHistory();
-      historyCountEl.textContent = `${history.length} records`;
-
-      if (!history.length) {
-        historyBody.innerHTML = '<tr><td colspan="5">ยังไม่มีประวัติ</td></tr>';
-        drawChart([]);
-        return;
-      }
-
-      historyBody.innerHTML = [...history].reverse().map(row => `
-        <tr>
-          <td>${escapeHtml(formatDateTime(row.savedAt))}</td>
-          <td class="num">${formatPrice(row.g95)}</td>
-          <td class="num">${formatPrice(row.e20)}</td>
-          <td class="num">${formatPrice(row.spread)}</td>
-          <td>${escapeHtml(row.priceDate || '-')}</td>
-        </tr>
-      `).join('');
-
-      drawChart(history);
+      const rows = sortedFills(state.current).reverse().slice(0, 5);
+      $('history').innerHTML = rows.length
+        ? rows.map(r => `
+          <li>
+            <span>${r.date}</span>
+            <span class="r">${fmt(r.liters * r.paid, 0)} บาท</span>
+            <span class="s">${fmt(r.odometer, 0)} กม. · ${fmt(r.liters, 2)} ลิตร · ${fmt(r.paid, 2)} บาท/ลิตร</span>
+          </li>`).join('')
+        : '<li><span>ยังไม่มีประวัติการเติม</span></li>';
     }
 
-    function drawChart(history) {
-      const ctx = chartCtx;
-      const width = chartCanvas.width;
-      const height = chartCanvas.height;
-      ctx.clearRect(0, 0, width, height);
-
-      ctx.fillStyle = '#0b1220';
-      ctx.fillRect(0, 0, width, height);
-
-      const pad = { top: 20, right: 20, bottom: 34, left: 50 };
-      const innerW = width - pad.left - pad.right;
-      const innerH = height - pad.top - pad.bottom;
-
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
-      ctx.lineWidth = 1;
-      for (let i = 0; i <= 4; i++) {
-        const y = pad.top + (innerH / 4) * i;
-        ctx.beginPath();
-        ctx.moveTo(pad.left, y);
-        ctx.lineTo(width - pad.right, y);
-        ctx.stroke();
-      }
-
-      if (!history.length) {
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '16px system-ui';
-        ctx.fillText('ยังไม่มีข้อมูลย้อนหลัง', pad.left, pad.top + 24);
+    function renderChart() {
+      const v = vehicle();
+      const rows = state.history.slice(-30);
+      const svg = $('chart');
+      if (rows.length < 2) {
+        svg.innerHTML = '<text x="20" y="100" font-size="13" fill="#86868b">ยังมีข้อมูลไม่พอสำหรับกราฟ</text>';
         return;
       }
-
-      const spreads = history.map(h => Number(h.spread)).filter(v => Number.isFinite(v));
-      if (!spreads.length) return;
-
-      const min = Math.min(...spreads, 0);
-      const max = Math.max(...spreads, 4);
-      const range = Math.max(max - min, 1);
-
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '12px system-ui';
-      for (let i = 0; i <= 4; i++) {
-        const value = max - (range / 4) * i;
-        const y = pad.top + (innerH / 4) * i;
-        ctx.fillText(value.toFixed(2), 6, y + 4);
-      }
-
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      spreads.forEach((value, index) => {
-        const x = pad.left + (spreads.length === 1 ? innerW / 2 : (innerW / (spreads.length - 1)) * index);
-        const y = pad.top + ((max - value) / range) * innerH;
-        if (index === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      spreads.forEach((value, index) => {
-        const x = pad.left + (spreads.length === 1 ? innerW / 2 : (innerW / (spreads.length - 1)) * index);
-        const y = pad.top + ((max - value) / range) * innerH;
-        ctx.fillStyle = value >= 3 ? '#22c55e' : value >= 2 ? '#f59e0b' : '#ef4444';
-        ctx.beginPath();
-        ctx.arc(x, y, 4.5, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '12px system-ui';
-      const labels = history.map(h => new Date(h.savedAt).toLocaleString('th-TH', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }));
-      const step = Math.max(1, Math.ceil(labels.length / 6));
-      labels.forEach((label, index) => {
-        if (index % step !== 0 && index !== labels.length - 1) return;
-        const x = pad.left + (labels.length === 1 ? innerW / 2 : (innerW / (labels.length - 1)) * index);
-        ctx.save();
-        ctx.translate(x, height - 8);
-        ctx.rotate(-0.35);
-        ctx.fillText(label, 0, 0);
-        ctx.restore();
-      });
+      const key = v.fuel === 'G95' ? 'g95' : 'e20';
+      const refKey = v.ref === 'G95' ? 'g95' : 'e20';
+      const main = rows.map(r => Number(r[key]));
+      const ref = rows.map(r => Number(r[refKey]));
+      const all = [...main, ...ref];
+      const min = Math.floor(Math.min(...all)) - 0.5;
+      const max = Math.ceil(Math.max(...all)) + 0.5;
+      const W = 520, H = 190, padL = 40, padR = 12, padT = 12, padB = 22;
+      const x = i => padL + (i / (rows.length - 1)) * (W - padL - padR);
+      const y = val => padT + (1 - (val - min) / (max - min)) * (H - padT - padB);
+      const pts = arr => arr.map((val, i) => `${x(i).toFixed(1)},${y(val).toFixed(1)}`).join(' ');
+      const ticks = [min, (min + max) / 2, max];
+      svg.innerHTML = `
+        ${ticks.map(t => `<line x1="${padL}" y1="${y(t)}" x2="${W - padR}" y2="${y(t)}" stroke="#e8e8ed" />`).join('')}
+        ${ticks.map(t => `<text x="0" y="${y(t) + 4}" font-size="11" fill="#86868b">${fmt(t, 1)}</text>`).join('')}
+        <polyline fill="none" stroke="#c7c7cc" stroke-width="2" points="${pts(ref)}" />
+        <polyline fill="none" stroke="#0071e3" stroke-width="2.5" stroke-linejoin="round" points="${pts(main)}" />`;
     }
 
-    function renderData(payload) {
-      if (!Array.isArray(payload) || payload.length === 0) {
-        throw new Error('รูปแบบข้อมูลไม่ถูกต้อง: ไม่พบรายการหลัก');
-      }
-
-      const root = payload[0];
-      const oilList = JSON.parse(root.OilList || '[]');
-
-      oilDateNowEl.textContent = root.OilDateNow || '-';
-      oilPriceDateTimeEl.textContent = [root.OilPriceDate, root.OilPriceTime].filter(Boolean).join(' ') || '-';
-      oilRemark2El.textContent = root.OilRemark2 || '-';
-      remarkEl.textContent = [root.OilRemark, root.OilRemark2].filter(Boolean).join('\n');
-
-      const g95 = findOilByPriority(
-        oilList,
-        ['แก๊สโซฮอล์ 95 S EVO', 'Gasohol 95 S EVO'],
-        ['95sevo', 'gasohol95sevo', 'แก๊สโซฮอล์95sevo']
-      );
-      const e20 = findOilByPriority(
-        oilList,
-        ['แก๊สโซฮอล์ E20 S EVO', 'Gasohol E20 S EVO', 'E20 S EVO'],
-        ['e20sevo', 'gasohole20', 'แก๊สโซฮอล์e20', 'e20']
-      );
-
-      latestData = {
-        g95,
-        e20,
-        root,
-        spread: (toNumber(g95?.PriceToday) !== null && toNumber(e20?.PriceToday) !== null)
-          ? toNumber(g95.PriceToday) - toNumber(e20.PriceToday)
-          : null
-      };
-
-      renderFocusCards(g95, e20);
-      renderSpread(latestData.spread);
-      recalcMetrics();
-
-      if (!oilList.length) {
-        oilTableBody.innerHTML = '<tr><td colspan="4">ไม่พบรายการน้ำมัน</td></tr>';
-        return;
-      }
-
-      oilTableBody.innerHTML = oilList.map(item => `
-        <tr>
-          <td>${escapeHtml(item.OilName ?? '-')}</td>
-          <td class="num">${formatPrice(item.PriceYesterday)}</td>
-          <td class="num">${formatPrice(item.PriceToday)}</td>
-          <td class="num">${formatPrice(item.PriceTomorrow)}</td>
-        </tr>
-      `).join('');
+    function renderSource() {
+      const m = state.priceMeta;
+      $('sourceInfo').textContent = m
+        ? `ราคาวันที่ ${m.priceDate || '-'} เวลา ${m.priceTime || '-'} น. · ตรวจพบการเปลี่ยนแปลงล่าสุดเมื่อ ${m.fetchedAt ? bangkokDate(m.fetchedAt) : '-'}`
+        : 'ยังไม่มีข้อมูลราคา';
     }
 
-    async function loadJson(path) {
-      const response = await fetch(`${path}?t=${Date.now()}`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`โหลด ${path} ไม่สำเร็จ (HTTP ${response.status})`);
+    function renderTotal() {
+      const liters = Number($('liters').value) || 0;
+      const paid = Number($('paid').value) || 0;
+      $('total').textContent = `${fmt(liters * paid, 0)} บาท`;
+    }
+
+    function setMessage(text, kind = '') {
+      const el = $('message');
+      el.textContent = text;
+      el.className = `message ${kind}`.trim();
+    }
+
+    function renderAll() {
+      renderHero();
+      renderStats();
+      renderHistory();
+      renderChart();
+      renderSource();
+      if (!state.paidEdited) {
+        const est = estimatedPump(state.current);
+        $('paid').value = est === null ? '' : est.toFixed(2);
+      }
+      renderTotal();
+    }
+
+    function setVehicle(next) {
+      state.current = next;
+      document.querySelectorAll('[data-vehicle]').forEach(btn => {
+        btn.setAttribute('aria-pressed', String(btn.dataset.vehicle === next));
+      });
+      state.paidEdited = false;
+      $('odometer').value = '';
+      $('liters').value = '';
+      setMessage('');
+      renderAll();
+    }
+
+    // The Apps Script web app answers POST with a redirect, so the browser cannot read the reply.
+    // We send with no-cors, then read the sheet back to confirm the row arrived.
+    async function saveFill() {
+      const key = state.current;
+      const v = vehicle();
+      const last = sortedFills(key).pop();
+      const odometer = Number($('odometer').value);
+      const liters = Number($('liters').value);
+      const paid = Number($('paid').value);
+      const date = $('fillDate').value;
+
+      if (!date) return setMessage('เลือกวันที่เติม', 'error');
+      if (!(odometer > 0)) return setMessage('กรอกเลขไมล์', 'error');
+      if (last && odometer <= last.odometer) return setMessage(`เลขไมล์ต้องมากกว่า ${fmt(last.odometer, 0)} กม.`, 'error');
+      if (!(liters > 0 && liters <= 200)) return setMessage('กรอกจำนวนลิตรให้ถูกต้อง', 'error');
+      if (!(paid > 0 && paid < 200)) return setMessage('กรอกราคาที่จ่ายจริง', 'error');
+      const announced = announcedToday(v.fuel);
+      if (announced === null) return setMessage('ยังไม่มีราคาประกาศ ลองรีเฟรชอีกครั้ง', 'error');
+
+      const button = $('save');
+      button.disabled = true;
+      setMessage('กำลังบันทึก...');
+      try {
+        await fetch(ENDPOINT, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ vehicle: key, date, odometer, liters, announced, paid, note: '' }),
+        });
+        await loadFills();
+        const saved = state.fills[key].some(r => r.odometer === odometer && r.date === date);
+        if (saved) {
+          $('odometer').value = '';
+          $('liters').value = '';
+          state.paidEdited = false;
+          renderAll();
+          setMessage('บันทึกแล้ว', 'ok');
+        } else {
+          setMessage('ยังไม่เห็นรายการที่บันทึก ลองกดรีเฟรชแล้วตรวจอีกครั้ง', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        setMessage('บันทึกไม่สำเร็จ ตรวจการเชื่อมต่อแล้วลองใหม่', 'error');
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function getJson(url) {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
     }
 
-    async function loadData() {
-      refreshBtn.disabled = true;
-      statusEl.textContent = 'กำลังโหลดข้อมูล...';
-      errorBox.style.display = 'none';
-      errorBox.textContent = '';
-      try {
-        const [payload, history] = await Promise.all([
-          loadJson('./data/latest.json'),
-          loadJson('./data/history.json'),
-        ]);
-        historyRows = Array.isArray(history) ? history : [];
-        renderData(payload);
-        renderHistory();
-
-        const fetchedAt = payload[0]?.FetchedAt;
-        statusEl.textContent = fetchedAt
-          ? `ราคาวันที่ ${payload[0].OilPriceDate || '-'} เวลา ${payload[0].OilPriceTime || '-'} น. • ตรวจพบการเปลี่ยนแปลงล่าสุดเมื่อ ${formatDateTime(fetchedAt)}`
-          : 'ยังไม่มีข้อมูลราคา';
-      } catch (error) {
-        console.error(error);
-        errorBox.innerHTML = `โหลดข้อมูลไม่สำเร็จ<br>${escapeHtml(error.message || String(error))}<br><br>ลองกด Refresh อีกครั้ง หรือรอให้ระบบอัปเดตรอบถัดไป`;
-        errorBox.style.display = 'block';
-        statusEl.textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
-      } finally {
-        refreshBtn.disabled = false;
-      }
+    async function loadPrices() {
+      const [latest, history] = await Promise.all([
+        getJson(`./data/latest.json?t=${Date.now()}`),
+        getJson(`./data/history.json?t=${Date.now()}`),
+      ]);
+      const root = Array.isArray(latest) ? latest[0] : latest;
+      const oilList = typeof root.OilList === 'string' ? JSON.parse(root.OilList) : root.OilList;
+      const pick = fuel => {
+        const item = findOil(oilList, fuel);
+        if (!item) throw new Error(`ไม่พบราคา ${fuel} ในข้อมูล`);
+        return {
+          today: Number(item.PriceToday),
+          yesterday: Number(item.PriceYesterday),
+          tomorrow: Number(item.PriceTomorrow),
+        };
+      };
+      state.prices = { G95: pick('G95'), E20: pick('E20') };
+      state.priceMeta = {
+        priceDate: root.OilPriceDate,
+        priceTime: root.OilPriceTime,
+        fetchedAt: root.FetchedAt,
+      };
+      state.history = Array.isArray(history) ? history : [];
     }
 
-    async function copySummary() {
-      const g95Today = latestData.g95 ? toNumber(latestData.g95.PriceToday) : null;
-      const e20Today = latestData.e20 ? toNumber(latestData.e20.PriceToday) : null;
-      const settings = getSettings();
-      if (g95Today === null || e20Today === null) return;
-      const spread = g95Today - e20Today;
-      const tankSavings = spread * settings.tankLiters;
-      const message = `วันนี้ G95 S EVO ${g95Today.toFixed(2)} บาท/ลิตร, E20 ${e20Today.toFixed(2)} บาท/ลิตร, ต่าง ${spread.toFixed(2)} บาท/ลิตร, เติม ${settings.tankLiters} ลิตร ประหยัด ${tankSavings.toFixed(2)} บาท`;
-      try {
-        await navigator.clipboard.writeText(message);
-        copySummaryBtn.textContent = 'Copied';
-        setTimeout(() => copySummaryBtn.textContent = 'Copy Summary', 1400);
-      } catch {
-        copySummaryBtn.textContent = 'Copy failed';
-        setTimeout(() => copySummaryBtn.textContent = 'Copy Summary', 1400);
-      }
-    }
-
-    [tankLitersInput, distanceKmInput, g95KmPerLInput, e20KmPerLInput, budgetBahtInput, targetDistanceKmInput, reservePercentInput].forEach(input => {
-      input.addEventListener('input', saveSettings);
-      input.addEventListener('change', saveSettings);
-    });
-
-    if (presetWrap) {
-      presetWrap.addEventListener('click', (event) => {
-        const btn = event.target.closest('.seg-btn');
-        if (!btn) return;
-        setActivePreset(btn.dataset.preset, true);
+    async function loadFills() {
+      const data = await getJson(`${ENDPOINT}?t=${Date.now()}`);
+      if (!data.ok) throw new Error(data.error || 'โหลดประวัติไม่สำเร็จ');
+      const fills = { car: [], moto: [] };
+      data.rows.forEach(r => {
+        const key = r.vehicle;
+        if (!fills[key]) return;
+        fills[key].push({
+          id: r.id,
+          createdAt: r.created_at,
+          date: bangkokDate(r.date),
+          odometer: Number(r.odometer),
+          liters: Number(r.liters),
+          announced: Number(r.announced),
+          paid: Number(r.paid),
+        });
       });
+      state.fills = fills;
     }
 
-    budgetFuelTypeInput.addEventListener('click', () => {
-      budgetFuelTypeInput.value = budgetFuelTypeInput.value.includes('E20') ? 'G95 S EVO' : 'E20';
-      saveSettings();
+    async function refresh() {
+      const button = $('refresh');
+      button.disabled = true;
+      $('notice').hidden = true;
+      try {
+        await Promise.all([loadPrices(), loadFills()]);
+        if (!$('fillDate').value) $('fillDate').value = todayBangkok();
+        renderAll();
+      } catch (err) {
+        console.error(err);
+        const notice = $('notice');
+        notice.textContent = `โหลดข้อมูลไม่สำเร็จ (${err.message}) ลองกดรีเฟรชอีกครั้ง`;
+        notice.hidden = false;
+        if (!state.prices) renderAll();
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    document.querySelectorAll('[data-vehicle]').forEach(btn => {
+      btn.addEventListener('click', () => setVehicle(btn.dataset.vehicle));
     });
+    $('paid').addEventListener('input', () => { state.paidEdited = true; renderTotal(); });
+    $('liters').addEventListener('input', renderTotal);
+    $('save').addEventListener('click', saveFill);
+    $('refresh').addEventListener('click', refresh);
 
-    refreshBtn.addEventListener('click', loadData);
-    copySummaryBtn.addEventListener('click', copySummary);
-
-    applySettingsToInputs();
-    renderHistory();
-    recalcMetrics();
-    recalcPlanner();
-    loadData();
+    $('fillDate').value = todayBangkok();
+    setVehicle('moto');
+    refresh();
   </script>
 </body>
 </html>
